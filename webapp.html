@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wordle Clone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121213;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      display: contents;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #3a3a3c;
+      text-align: center;
+      font-size: 2rem;
+      text-transform: uppercase;
+      background-color: #121213;
+      color: white;
+      line-height: 60px;
+      font-weight: bold;
+    }
+
+    .tile.correct {
+      background-color: #538d4e;
+      border-color: #538d4e;
+    }
+
+    .tile.present {
+      background-color: #b59f3b;
+      border-color: #b59f3b;
+    }
+
+    .tile.absent {
+      background-color: #3a3a3c;
+      border-color: #3a3a3c;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 300px;
+      text-transform: uppercase;
+    }
+
+    button {
+      margin-top: 10px;
+      margin-right: 5px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini Wordle</h1>
+  <div id="game" class="board"></div>
+
+  <input type="text" id="guessInput" maxlength="5" placeholder="Type your 5-letter guess" />
+  <div>
+    <button onclick="submitGuess()">Submit</button>
+    <button onclick="resetGame()">Reset Game</button>
+  </div>
+
+  <div class="message" id="messageBox"></div>
+
+  <script>
+    const WORDS = ["apple", "grape", "mango", "peach", "berry", "chili", "lemon", "melon"];
+    let ANSWER = "";
+    let currentRow = 0;
+    const MAX_GUESSES = 6;
+
+    const gameBoard = document.getElementById("game");
+    const messageBox = document.getElementById("messageBox");
+    const input = document.getElementById("guessInput");
+
+    function pickNewWord() {
+      return WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+    }
+
+    function setupBoard() {
+      gameBoard.innerHTML = "";
+      for (let i = 0; i < MAX_GUESSES; i++) {
+        const row = document.createElement("div");
+        row.classList.add("row");
+        row.setAttribute("id", `row-${i}`);
+        for (let j = 0; j < 5; j++) {
+          const tile = document.createElement("div");
+          tile.classList.add("tile");
+          tile.setAttribute("id", `tile-${i}-${j}`);
+          row.appendChild(tile);
+        }
+        gameBoard.appendChild(row);
+      }
+    }
+
+    function submitGuess() {
+      let guess = input.value.trim().toUpperCase();
+      if (guess.length !== 5) {
+        messageBox.textContent = "Please enter a 5-letter word.";
+        return;
+      }
+
+      if (currentRow >= MAX_GUESSES) return;
+
+      const rowTiles = Array.from(document.querySelectorAll(`#row-${currentRow} .tile`));
+      const answerArray = ANSWER.split('');
+      const guessArray = guess.split('');
+
+      let usedIndices = [];
+
+      // First pass: correct letters
+      for (let i = 0; i < 5; i++) {
+        rowTiles[i].textContent = guess[i];
+        if (guess[i] === ANSWER[i]) {
+          rowTiles[i].classList.add("correct");
+          usedIndices.push(i);
+          answerArray[i] = null;
+        }
+      }
+
+      // Second pass: present or absent
+      for (let i = 0; i < 5; i++) {
+        if (rowTiles[i].classList.contains("correct")) continue;
+        if (answerArray.includes(guess[i])) {
+          rowTiles[i].classList.add("present");
+          const index = answerArray.indexOf(guess[i]);
+          answerArray[index] = null;
+        } else {
+          rowTiles[i].classList.add("absent");
+        }
+      }
+
+      if (guess === ANSWER) {
+        messageBox.textContent = "🎉 You got it!";
+        input.disabled = true;
+        return;
+      }
+
+      currentRow++;
+      input.value = "";
+      if (currentRow === MAX_GUESSES) {
+        messageBox.textContent = `The word was: ${ANSWER}`;
+        input.disabled = true;
+      }
+    }
+
+    function resetGame() {
+      currentRow = 0;
+      ANSWER = pickNewWord();
+      messageBox.textContent = "";
+      input.value = "";
+      input.disabled = false;
+      setupBoard();
+    }
+
+    input.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        submitGuess();
+      }
+    });
+
+    // Initialize game on load
+    resetGame();
+  </script>
+</body>
+<a href="scratch.html">Dirtbiking</a>
+<a href="index.html">Resume</a>
+</html>
